@@ -9,11 +9,10 @@ class I18nEditor(object):
         self.form = Tk()
         self.filename = ''
         self.keys = []
-        self.valuesAr = []
-        self.valuesEn = []
-        self.dictAr = {}
-        self.dictEn = {}
-    
+        self.values = {}
+        self.dicts = {}
+        self.texts = {}
+        self.languages = []
 
         self.form.title('i18n Editor')
         self.form.resizable(0,0)
@@ -27,80 +26,61 @@ class I18nEditor(object):
 
         self.form.geometry('{}x{}+{}+{}'.format(600, 450, x, y))
 
-        frame = Frame(self.form)
-        frame.place(anchor=NW,x=50,y=0, relx=0.20)
+        self.frame = Frame(self.form)
+        self.frame.place(anchor=NW,x=50,y=0, relx=0.20)
 
         self.lbox = Listbox(self.form, height=600, width=25)
         self.lbox.bind('<<ListboxSelect>>', self.onselect)
         self.lbox.pack(side="left")
         self.lbox.pack(expand=0)
 
-        lblkey = Label(frame, text="Key")
+        lblkey = Label(self.frame, text="Key")
         lblkey.grid(row=0, column=0)
 
-
         self.textKey = StringVar()
-        self.txtKey = Entry(frame, width=50, textvariable=self.textKey)
+        self.txtKey = Entry(self.frame, width=50, textvariable=self.textKey)
         self.txtKey.grid(row=0,column=1, columnspan=5)
 
-
-        lblAr = Label(frame, text="Value AR", )
-        lblAr.grid(row=1, column=0)
-
-        self.textAr = StringVar()
-        self.txtAr = Entry(frame, width=50, textvariable=self.textAr)
-        self.txtAr.grid(row=1,column=1, columnspan=5)
-
-        lblEn = Label(frame, text="Value EN")
-        lblEn.grid(row=2, column=0)
-
-        self.textEn = StringVar()
-        self.txtEn = Entry(frame, width=50, textvariable=self.textEn)
-        self.txtEn.grid(row=2,column=1, columnspan=5)
-
-        self.btnSelect = Button(frame, text="Select i18n folder", command=self.loadFils)
+        self.btnSelect = Button(self.frame, text="Select i18n folder", command=self.loadFils)
         self.btnSelect.grid(row=3,column=0)
 
-        self.btnClear = Button(frame, text="Clear", command=self.clear, width=10)
+        self.btnClear = Button(self.frame, text="Clear", command=self.clear, width=10)
         self.btnClear.grid(row=3, column=1)
 
-        self.btnUpdate = Button(frame, text="Update Key", command=self.update)
+        self.btnUpdate = Button(self.frame, text="Update Key", command=self.update)
         self.btnUpdate.grid(row=3, column=2)
 
-        self.btnAdd = Button(frame, text="Add Key", command=self.addKey, width=10)
+        self.btnAdd = Button(self.frame, text="Add Key", command=self.addKey, width=10)
         self.btnAdd.grid(row=3, column=3)
 
-        self.btnSaveFiles = Button(frame, text="Save Files", command=self.saveFiles, width=10)
+        self.btnSaveFiles = Button(self.frame, text="Save Files", command=self.saveFiles, width=10)
         self.btnSaveFiles.grid(row=3, column=4)
-
+        
 
     def clear(self):
         self.textKey.set('')
-        self.textAr.set('')
-        self.textEn.set('')
-
+        for lang in self.languages:
+            self.texts[lang].set('')
 
     def update(self):
         k = self.textKey.get()
-        self.dictAr[k] = self.textAr.get()
-        self.dictEn[k] = self.textEn.get()
+        for lang in self.languages:
+            self.dicts[lang][k] = self.texts[lang].get()
 
     def addKey(self):
         k = self.textKey.get()
         self.lbox.insert(0, k)
-        self.dictAr[k] = self.textAr.get()
-        self.dictEn[k] = self.textEn.get()
-        self.clear()
+        for lang in self.languages:
+            self.dicts[lang][k] = self.texts[lang].get()
 
+        self.clear()
 
     def saveFiles(self):
         files = os.listdir(self.filename)
-        with open(self.filename+'/'+files[0],'w', encoding="utf-8") as fileAr:
-            json.dump(self.dictAr, fileAr, ensure_ascii=False)
+        for lang in self.languages:
+            with open(self.filename+'/'+lang+'.json','w', encoding="utf-8") as file:
+                json.dump(self.dicts[lang], file, ensure_ascii=False)
         
-
-        with open(self.filename+'/'+files[1],'w', encoding="utf-8") as fileEn:
-            json.dump(self.dictEn, fileEn, ensure_ascii=False)
 
         messagebox.showinfo("Done", "File Saved Successfully")
 
@@ -110,25 +90,39 @@ class I18nEditor(object):
         index = int(w.curselection()[0])
         value = w.get(index)
         self.textKey.set(value)
-        self.textAr.set(self.dictAr[value])
-        self.textEn.set(self.dictEn[value])
-
+        for lang in self.languages:
+            self.texts[lang].set(self.dicts[lang][value])
+        
 
     def read_files(self,folder):
         files = os.listdir(folder);
-        fileAr = open(folder+'/'+files[0],'r', encoding="utf-8")
-        self.dictAr = json.loads(fileAr.read())
+        self.languages = [f.split('.')[0] for f in files]
+        for i in range(len(files)):
+            fi = files[i]
+            lang = fi.split('.')[0]
+            lbl = Label(self.frame, text="Value {}".format(lang), )
+            lbl.grid(row=1+i, column=0)
 
-        fileEn = open(folder+'/'+files[1],'r', encoding="utf-8")
-        self.dictEn = json.loads(fileEn.read())
+            text = StringVar()
+            txt = Entry(self.frame, width=50, textvariable=text)
+            txt.grid(row=1+i,column=1, columnspan=5)
+            self.texts[lang] = text
 
-        self.keys = list(self.dictAr.keys())
-        self.valuesAr = list(self.dictAr.values())
-        self.valuesEn = list(self.dictEn.values())
+            file = open(folder+'/'+fi,'r', encoding="utf-8")
+            dict = json.loads(file.read())
+            self.keys = list(dict.keys())
+            self.values[lang] = list(dict.values())
+            self.dicts[lang] = dict
 
+        l = len(self.languages)
+        self.btnSelect.grid(row=l+2,column=0)
+        self.btnClear.grid(row=l+2, column=1)
+        self.btnUpdate.grid(row=l+2, column=2)
+        self.btnAdd.grid(row=l+2, column=3)
+        self.btnSaveFiles.grid(row=l+2, column=4)
+        
         for i,item in enumerate(self.keys):
             self.lbox.insert(1,item)
-
 
     def loadFils(self):
         self.filename = filedialog.askdirectory()
