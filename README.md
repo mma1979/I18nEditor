@@ -19,7 +19,7 @@ we start with select the i18n directory which containes the json files that cont
 then we can select the key to load it is values to view nd/or update
 ![alt text](https://drive.google.com/uc?export=download&id=1TAIOX3wBxOtIzWQTJ26kM8gNvyivRsoJ "i18n editor")
 
-or add new keys
+or add new keys and press [Add Key] button
 ![alt text](https://drive.google.com/uc?export=download&id=1tbnYpTKfOyQWPolow-bqnSiY33Lq0Jzp "i18n editor")
 
 finally we press save files to update actual files
@@ -30,4 +30,4 @@ finally we press save files to update actual files
 3. Visual studio 2017 as IDE
 
 # Conculsion
-I started this project as a help tool for my dialy work, and I hope it will help you as will, and I will appreciate all contribution to incance the tool.
+I started this project as a help tool for my dialy work, and I hope it will help you as will, and I will appreciate all contribution to inhance the tool.
